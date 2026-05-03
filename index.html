@@ -592,7 +592,7 @@
       <div class="section-toolbar">
         <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold-light);">⬡ All Members</div>
         <div class="toolbar-btns">
-          <a class="tool-btn" href="https://docs.google.com/spreadsheets/d/1ifIoDliHcA--ndPIXC_uDLABck8ModyBNuI4Jm4RR9g/edit" target="_blank">📊 Open in Google Sheets</a>
+          <a class="tool-btn" href="https://docs.google.com/spreadsheets/d/1R6eSPPHw3ZFwDW0HdMw8TiuAOhfeGQAYm29yyCL-_nc/edit" target="_blank">📊 Open in Google Sheets</a>
           <button class="tool-btn" onclick="exportCSV('members')">⬇ Export CSV</button>
         </div>
       </div>
@@ -681,13 +681,13 @@
 // CONFIGURATION — change password here
 // ─────────────────────────────────────────
 const ADMIN_PASS  = 'admin';
-const SHEET_ID    = '1ifIoDliHcA--ndPIXC_uDLABck8ModyBNuI4Jm4RR9g';
+const SHEET_ID    = '1R6eSPPHw3ZFwDW0HdMw8TiuAOhfeGQAYm29yyCL-_nc';
 const SHEET_NAME  = 'Sheet1';
 const ADMIN_EMAIL = 'kennesawnaba@gmail.com';
 
 // Google Apps Script Web App URL — paste yours here after setup
 // See the instructions panel below for how to get this URL
-let APPS_SCRIPT_URL = '';
+let APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9h2olOWvvSXaMYCuU14_UC34lQ5WXlEvobHKaPoX8CTMSFMXmmk5T1SexBcUfneoR/exec';
 
 // ─────────────────────────────────────────
 // STATE
@@ -954,7 +954,7 @@ function showAppsScriptBanner() {
         <li>Click <strong>Deploy → New deployment → Web app</strong></li>
         <li>Set <em>Execute as: Me</em> and <em>Who has access: Anyone</em></li>
         <li>Click <strong>Deploy</strong> and copy the Web App URL</li>
-        <li>Open this HTML file in a text editor, find <code style="color:var(--gold);">let APPS_SCRIPT_URL = '';</code> and paste your URL between the quotes</li>
+        <li>Open this HTML file in a text editor, find <code style="color:var(--gold);">let APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9h2olOWvvSXaMYCuU14_UC34lQ5WXlEvobHKaPoX8CTMSFMXmmk5T1SexBcUfneoR/exec';</code> and paste your URL between the quotes</li>
         <li>Redeploy to Netlify</li>
       </ol>
       <div style="margin-top:1rem;background:rgba(0,0,0,0.3);border-radius:3px;padding:1rem;font-family:monospace;font-size:0.72rem;color:#a0b8a8;white-space:pre-wrap;max-height:200px;overflow-y:auto;">${getAppsScriptCode()}</div>
@@ -1074,8 +1074,13 @@ async function awardPoints() {
   if (!name) { showToast('⚠️ Enter a member name.'); return; }
   if (!pts || pts < 1) { showToast('⚠️ Enter a valid point amount.'); return; }
 
-  let m = members.find(m => m.name.toLowerCase() === name.toLowerCase());
-  if (!m) { showToast('⚠️ Member not found in roster. Add them to the Google Sheet first.'); return; }
+  // Flexible name match — trims spaces, ignores case, handles extra spaces
+  let m = members.find(m => m.name.toLowerCase().replace(/\s+/g,' ').trim() === name.toLowerCase().replace(/\s+/g,' ').trim());
+  if (!m) {
+    // Try partial match as fallback
+    m = members.find(m => m.name.toLowerCase().includes(name.toLowerCase().trim()) || name.toLowerCase().includes(m.name.toLowerCase().trim()));
+  }
+  if (!m) { showToast('⚠️ Member not found. Available: ' + members.map(x=>x.name).join(', ')); return; }
 
   m.points += pts;
   activityLog.unshift({ memberName: m.name, desc: reason, pts, date: today() });
@@ -1123,7 +1128,8 @@ async function reviewSub(id, action) {
   if (action === 'approved') {
     const pts = parseInt(document.getElementById('pts-' + id).value) || 30;
     sub.points = pts;
-    let m = members.find(m => m.name.toLowerCase() === sub.memberName.toLowerCase());
+    let m = members.find(m => m.name.toLowerCase().replace(/\s+/g,' ').trim() === sub.memberName.toLowerCase().replace(/\s+/g,' ').trim());
+    if (!m) m = members.find(m => m.name.toLowerCase().includes(sub.memberName.toLowerCase().trim()) || sub.memberName.toLowerCase().includes(m.name.toLowerCase().trim()));
     if (m) {
       m.points += pts;
       activityLog.unshift({ memberName: sub.memberName, desc: sub.type + ' approved', pts, date: today() });
