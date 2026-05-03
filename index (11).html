@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NABA KSU Member Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest: #1a3a2a;
+    --deep: #0f2318;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: #8a6f2e;
+    --sage: #2d5a3d;
+    --sage-light: #3d7a52;
+    --cream: #f5f0e8;
+    --cream-dark: #e8e0cc;
+    --text-light: #a0b8a8;
+    --border: rgba(201,168,76,0.2);
+    --card-bg: rgba(26,58,42,0.6);
+    --glass: rgba(15,35,24,0.92);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--deep);
+    color: var(--cream);
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(ellipse at 15% 15%, rgba(201,168,76,0.07) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 85%, rgba(45,90,61,0.18) 0%, transparent 55%),
+      repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px);
+    pointer-events: none; z-index: 0;
+  }
+
+  .view { display: none; position: relative; z-index: 1; min-height: 100vh; }
+  .view.active { display: block; animation: fadeUp 0.4s ease both; }
+
+  /* ── HEADER ── */
+  .site-header {
+    position: sticky; top: 0; z-index: 200;
+    background: var(--glass); border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    padding: 0 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px; gap: 0.5rem; overflow: hidden;
+  }
+
+  .header-logo { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; min-width: 0; }
+
+  .logo-fallback { display: flex; align-items: center; gap: 0.6rem; }
+
+  #site-logo {
+    max-height: 44px; max-width: 150px; width: auto;
+    object-fit: contain; display: block; filter: brightness(10);
+  }
+
+  .logo-icon {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+  }
+
+  .logo-text h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem; font-weight: 700; color: var(--gold-light); line-height: 1; white-space: nowrap;
+  }
+
+  .logo-text span { font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-light); white-space: nowrap; display: block; }
+
+  .header-nav { display: flex; align-items: center; gap: 0.15rem; flex-shrink: 0; }
+
+  .nav-btn {
+    padding: 0.4rem 0.7rem; border-radius: 3px;
+    border: 1px solid transparent; background: transparent;
+    color: var(--text-light); font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem; font-weight: 500; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+
+  .nav-btn:hover { color: var(--cream); background: rgba(255,255,255,0.05); }
+  .nav-btn.active { color: var(--gold-light); background: rgba(201,168,76,0.1); border-color: var(--border); }
+  .nav-btn.admin-btn { color: var(--gold-dim); font-size: 0.72rem; }
+
+  /* ── SYNC BAR ── */
+  .sync-bar {
+    background: rgba(201,168,76,0.08); border-bottom: 1px solid var(--border);
+    padding: 0.4rem 1.5rem; display: flex; align-items: center; gap: 0.6rem;
+    font-size: 0.72rem; color: var(--text-light); position: relative; z-index: 1;
+  }
+
+  .sync-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--text-light); flex-shrink: 0; transition: background 0.3s;
+  }
+
+  .sync-dot.synced { background: #6ee786; box-shadow: 0 0 6px rgba(110,231,134,0.5); }
+  .sync-dot.syncing { background: var(--gold); animation: pulse 1s infinite; }
+  .sync-dot.error { background: #f08080; }
+
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+  /* ── CONTAINER ── */
+  .container { max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+  .page-header { text-align: center; margin-bottom: 2.5rem; }
+
+  .page-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem; font-weight: 700; color: var(--gold-light);
+    letter-spacing: 0.03em; margin-bottom: 0.4rem;
+  }
+
+  .page-header p { color: var(--text-light); font-size: 0.88rem; }
+
+  .gold-rule {
+    width: 60px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 0.75rem auto 0;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.75rem; backdrop-filter: blur(10px);
+  }
+
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem; font-weight: 600; color: var(--gold-light);
+    margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+
+  /* ── LEADERBOARD ── */
+  .lb-filters { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+
+  .filter-btn {
+    padding: 0.35rem 0.9rem; border-radius: 20px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text-light); font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
+  }
+
+  .filter-btn:hover { border-color: var(--gold-dim); color: var(--cream); }
+  .filter-btn.active { background: rgba(201,168,76,0.15); border-color: var(--gold); color: var(--gold-light); }
+
+  .podium {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem; margin-bottom: 2rem; align-items: end;
+  }
+
+  .podium-slot {
+    text-align: center; padding: 1.25rem 0.75rem 1rem;
+    border-radius: 4px; border: 1px solid var(--border); transition: transform 0.2s;
+  }
+
+  .podium-slot:hover { transform: translateY(-3px); }
+  .podium-slot.first { background: linear-gradient(180deg, rgba(201,168,76,0.18) 0%, rgba(26,58,42,0.5) 100%); border-color: rgba(201,168,76,0.5); order: 2; padding-top: 1.75rem; }
+  .podium-slot.second { background: rgba(192,192,192,0.06); border-color: rgba(192,192,192,0.25); order: 1; }
+  .podium-slot.third  { background: rgba(205,127,50,0.06);  border-color: rgba(205,127,50,0.25);  order: 3; }
+
+  .podium-crown { font-size: 1.8rem; margin-bottom: 0.5rem; }
+  .podium-crown.first { font-size: 2.2rem; }
+
+  .podium-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    margin: 0 auto 0.6rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; font-weight: 700;
+  }
+
+  .podium-slot.first  .podium-avatar { background: linear-gradient(135deg, var(--gold-dim), var(--gold)); color: var(--deep); width: 62px; height: 62px; font-size: 1.3rem; }
+  .podium-slot.second .podium-avatar { background: linear-gradient(135deg, #7a7a7a, #c0c0c0); color: var(--deep); }
+  .podium-slot.third  .podium-avatar { background: linear-gradient(135deg, #8b5e2a, #cd7f32); color: var(--deep); }
+
+  .podium-name { font-size: 0.85rem; font-weight: 600; color: var(--cream); margin-bottom: 0.25rem; }
+  .podium-pts  { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 700; color: var(--gold); line-height: 1; }
+  .podium-pts-label { font-size: 0.65rem; color: var(--text-light); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .lb-rest { display: flex; flex-direction: column; gap: 0.4rem; }
+
+  .lb-row {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.75rem 1rem; border-radius: 3px; border: 1px solid transparent; transition: all 0.2s;
+  }
+
+  .lb-row:hover { background: rgba(201,168,76,0.05); border-color: var(--border); }
+
+  .lb-rank { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 700; color: var(--text-light); width: 24px; text-align: center; flex-shrink: 0; }
+  .lb-avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--sage), var(--sage-light)); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: var(--cream); flex-shrink: 0; }
+  .lb-name-col   { flex: 1; font-size: 0.88rem; font-weight: 500; }
+  .lb-pts-col    { font-weight: 600; color: var(--gold); font-size: 0.9rem; }
+  .lb-attend-col { font-size: 0.75rem; color: var(--text-light); width: 80px; text-align: right; }
+
+  /* ── SUBMIT ── */
+  .sub-type-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+
+  .sub-type-card {
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 1rem 0.75rem; cursor: pointer; text-align: center;
+    transition: all 0.2s; background: rgba(255,255,255,0.02);
+  }
+
+  .sub-type-card:hover { border-color: var(--gold-dim); background: rgba(201,168,76,0.05); }
+  .sub-type-card.selected { border-color: var(--gold); background: rgba(201,168,76,0.12); }
+
+  .sub-type-icon { font-size: 1.6rem; margin-bottom: 0.4rem; }
+  .sub-type-name { font-size: 0.78rem; font-weight: 500; color: var(--cream); }
+  .sub-type-pts  { font-size: 0.68rem; color: var(--gold); margin-top: 0.2rem; }
+
+  .form-group { margin-bottom: 1.2rem; }
+
+  .form-group label { display: block; font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-light); margin-bottom: 0.45rem; }
+
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    border-radius: 3px; color: var(--cream);
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-group input:focus, .form-group textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
+  .form-group input::placeholder, .form-group textarea::placeholder { color: rgba(160,184,168,0.4); }
+  .form-group select option { background: var(--forest); }
+  .form-group textarea { resize: vertical; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  .info-note { padding: 0.75rem 1rem; background: rgba(201,168,76,0.07); border: 1px solid var(--border); border-radius: 3px; font-size: 0.8rem; color: var(--text-light); margin-bottom: 1rem; }
+  .info-note strong { color: var(--gold); }
+
+  .btn-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem; }
+
+  .btn-primary {
+    padding: 0.75rem 2rem;
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+    border: none; border-radius: 3px; color: var(--deep);
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 4px 15px rgba(201,168,76,0.25);
+  }
+
+  .btn-primary:hover { box-shadow: 0 6px 25px rgba(201,168,76,0.4); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-secondary { padding: 0.75rem 1.5rem; background: transparent; border: 1px solid var(--border); border-radius: 3px; color: var(--text-light); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; }
+  .btn-secondary:hover { border-color: var(--gold-dim); color: var(--cream); }
+
+  .tool-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 3px; border: 1px solid var(--border); background: rgba(201,168,76,0.07); color: var(--gold); font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .tool-btn:hover { background: rgba(201,168,76,0.15); border-color: var(--gold-dim); }
+  .tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+  /* ── ADMIN MODAL ── */
+  #adminLoginView { display: none; position: fixed; inset: 0; z-index: 500; background: rgba(10,20,14,0.85); backdrop-filter: blur(8px); align-items: center; justify-content: center; }
+  #adminLoginView.active { display: flex; }
+
+  .modal-box { background: var(--glass); border: 1px solid var(--border); border-radius: 4px; padding: 2.5rem; width: 100%; max-width: 380px; box-shadow: 0 40px 80px rgba(0,0,0,0.6); animation: fadeUp 0.3s ease both; position: relative; }
+  .modal-box h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; color: var(--gold-light); margin-bottom: 0.25rem; }
+  .modal-box p  { font-size: 0.8rem; color: var(--text-light); margin-bottom: 1.5rem; }
+  .modal-close  { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-light); font-size: 1.2rem; cursor: pointer; }
+
+  /* ── EMAIL MODAL ── */
+  #emailModal { display: none; position: fixed; inset: 0; z-index: 600; background: rgba(10,20,14,0.88); backdrop-filter: blur(8px); align-items: center; justify-content: center; flex-direction: column; }
+
+  /* ── ADMIN PANEL ── */
+  .admin-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 2rem; flex-wrap: wrap; }
+
+  .admin-tab { padding: 0.65rem 1.25rem; border: none; background: transparent; color: var(--text-light); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
+  .admin-tab:hover { color: var(--cream); }
+  .admin-tab.active { color: var(--gold-light); border-bottom-color: var(--gold); }
+
+  .admin-section { display: none; }
+  .admin-section.active { display: block; }
+
+  /* Review cards */
+  .review-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 4px; padding: 1.25rem; margin-bottom: 0.75rem; }
+  .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+  .review-member { font-size: 0.92rem; font-weight: 600; }
+  .review-meta   { font-size: 0.72rem; color: var(--text-light); margin-top: 0.1rem; }
+  .review-date-col { font-size: 0.72rem; color: var(--text-light); text-align: right; }
+  .review-title  { font-size: 0.85rem; font-weight: 500; color: var(--cream); margin-bottom: 0.4rem; }
+  .review-desc   { font-size: 0.82rem; color: var(--cream-dark); line-height: 1.55; padding: 0.65rem 0.85rem; background: rgba(255,255,255,0.03); border-left: 2px solid var(--border); border-radius: 2px; margin-bottom: 0.85rem; }
+  .review-actions { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+
+  .pts-input { width: 72px; padding: 0.4rem 0.5rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 3px; color: var(--gold); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600; outline: none; text-align: center; }
+  .pts-input:focus { border-color: var(--gold); }
+  .pts-label { font-size: 0.72rem; color: var(--text-light); }
+
+  .btn-approve { padding: 0.4rem 0.85rem; background: rgba(52,168,83,0.15); border: 1px solid rgba(52,168,83,0.35); border-radius: 3px; color: #6ee786; font-family: 'DM Sans', sans-serif; font-size: 0.76rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-approve:hover { background: rgba(52,168,83,0.3); }
+  .btn-reject  { padding: 0.4rem 0.85rem; background: rgba(224,82,82,0.12); border: 1px solid rgba(224,82,82,0.3); border-radius: 3px; color: #f08080; font-family: 'DM Sans', sans-serif; font-size: 0.76rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-reject:hover { background: rgba(224,82,82,0.25); }
+
+  .status-badge { display: inline-flex; align-items: center; padding: 0.18rem 0.55rem; border-radius: 2px; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .status-badge.approved { background: rgba(52,168,83,0.15);  color: #6ee786; border: 1px solid rgba(52,168,83,0.3); }
+  .status-badge.pending  { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid var(--border); }
+  .status-badge.rejected { background: rgba(224,82,82,0.15);  color: #f08080; border: 1px solid rgba(224,82,82,0.3); }
+
+  /* Attendance */
+  .quick-award-grid { display: grid; grid-template-columns: 1.5fr 1fr 1.5fr auto; gap: 0.75rem; align-items: end; margin-bottom: 1.5rem; }
+  .attend-list { display: flex; flex-direction: column; gap: 0.45rem; }
+  .attend-row { display: flex; align-items: center; gap: 0.85rem; padding: 0.7rem 0.85rem; border: 1px solid var(--border); border-radius: 3px; background: rgba(255,255,255,0.02); }
+  .attend-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--sage), var(--sage-light)); display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; color: var(--cream); flex-shrink: 0; }
+  .attend-name { flex: 1; font-size: 0.86rem; }
+  .attend-pts  { font-size: 0.8rem; color: var(--gold); font-weight: 600; width: 65px; }
+  .check-btn { padding: 0.3rem 0.75rem; background: rgba(201,168,76,0.1); border: 1px solid var(--border); border-radius: 3px; color: var(--gold); font-family: 'DM Sans', sans-serif; font-size: 0.73rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .check-btn:hover { background: rgba(201,168,76,0.22); }
+  .check-btn.checked { background: rgba(52,168,83,0.18); border-color: rgba(52,168,83,0.4); color: #6ee786; }
+
+  /* Tables */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { text-align: left; font-size: 0.67rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-light); padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); font-weight: 500; }
+  .data-table td { padding: 0.8rem 1rem; font-size: 0.84rem; border-bottom: 1px solid rgba(201,168,76,0.06); vertical-align: middle; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(201,168,76,0.03); }
+
+  .section-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
+  .toolbar-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .pending-badge { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: var(--gold); color: var(--deep); border-radius: 50%; font-size: 0.65rem; font-weight: 700; margin-left: 0.35rem; }
+
+  /* Sheets indicator */
+  .sheets-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.6rem; background: rgba(52,168,83,0.1); border: 1px solid rgba(52,168,83,0.25); border-radius: 3px; font-size: 0.7rem; color: #6ee786; }
+
+  .empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--text-light); }
+  .empty-state .icon { font-size: 2.2rem; margin-bottom: 0.6rem; opacity: 0.5; }
+  .empty-state p { font-size: 0.84rem; }
+
+  /* Loading skeleton */
+  .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 3px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  .skeleton-row { height: 44px; margin-bottom: 0.5rem; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+
+  .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--forest); border: 1px solid var(--gold); border-radius: 4px; padding: 0.85rem 1.25rem; font-size: 0.84rem; z-index: 9999; box-shadow: 0 20px 40px rgba(0,0,0,0.4); animation: toastIn 0.3s ease both; max-width: 320px; }
+
+  @media (max-width: 640px) {
+    .site-header { padding: 0 0.75rem; height: 56px; }
+    .logo-text h1 { font-size: 0.95rem; }
+    .logo-text span { font-size: 0.5rem; }
+    .logo-icon { width: 28px; height: 28px; }
+    .nav-btn { padding: 0.35rem 0.55rem; font-size: 0.72rem; }
+    .container { padding: 1.5rem 1rem; }
+    .podium { gap: 0.5rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .quick-award-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 380px) {
+    .logo-text span { display: none; }
+    .logo-text h1 { font-size: 0.9rem; }
+    .nav-btn { padding: 0.3rem 0.45rem; font-size: 0.68rem; }
+    #site-logo { max-height: 30px; max-width: 90px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-logo">
+    <img id="site-logo" src="logo.png" alt="NABA KSU Logo"
+      onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex';">
+    <div id="logo-fallback" class="logo-fallback" style="display:none;">
+      <div class="logo-icon">🏛️</div>
+      <div class="logo-text">
+        <h1>NABA KSU</h1>
+        <span>Loyalty &amp; Recognition</span>
+      </div>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <button class="nav-btn active" onclick="showView('leaderboard')">🏆 Leaderboard</button>
+    <button class="nav-btn"        onclick="showView('submit')">✦ Submit</button>
+    <button class="nav-btn admin-btn" onclick="openAdminLogin()">⚙ Admin</button>
+  </nav>
+</header>
+
+<!-- SYNC BAR -->
+<div class="sync-bar">
+  <div class="sync-dot" id="syncDot"></div>
+  <span id="syncStatus">Connecting to Google Sheets…</span>
+  <span style="margin-left:auto;opacity:0.6;" id="lastSync"></span>
+</div>
+
+<!-- ===== LEADERBOARD ===== -->
+<div id="view-leaderboard" class="view active">
+  <div class="container">
+    <div class="page-header">
+      <h2>Member Leaderboard</h2>
+      <p>Recognizing our most active and dedicated members</p>
+      <div class="gold-rule"></div>
+    </div>
+
+    <div class="lb-filters">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All Time</button>
+      <button class="filter-btn"        onclick="setFilter('attend',this)">By Attendance</button>
+    </div>
+
+    <div id="lbLoading">
+      <div class="skeleton skeleton-row" style="height:180px;margin-bottom:1rem;"></div>
+      <div class="skeleton skeleton-row"></div>
+      <div class="skeleton skeleton-row"></div>
+      <div class="skeleton skeleton-row"></div>
+    </div>
+
+    <div id="lbEmpty" class="empty-state" style="display:none;">
+      <div class="icon">🏆</div>
+      <p>No members yet — check back soon!</p>
+    </div>
+
+    <div id="podium" class="podium" style="display:none;"></div>
+    <div class="card" id="lbRestCard" style="display:none;">
+      <div class="lb-rest" id="lbRest"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SUBMIT ===== -->
+<div id="view-submit" class="view">
+  <div class="container">
+    <div class="page-header">
+      <h2>Submit an Activity</h2>
+      <p>Log your contributions — an admin will review and award your points</p>
+      <div class="gold-rule"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⬡ Choose Submission Type</div>
+      <div class="sub-type-grid">
+        <div class="sub-type-card" onclick="selectSubType(this,'Volunteer Work')">
+          <div class="sub-type-icon">🤝</div>
+          <div class="sub-type-name">Volunteer Work</div>
+          <div class="sub-type-pts">Up to 50 pts</div>
+        </div>
+        <div class="sub-type-card" onclick="selectSubType(this,'Community Service')">
+          <div class="sub-type-icon">🌱</div>
+          <div class="sub-type-name">Community Service</div>
+          <div class="sub-type-pts">Up to 40 pts</div>
+        </div>
+        <div class="sub-type-card" onclick="selectSubType(this,'Event Hosting')">
+          <div class="sub-type-icon">🎯</div>
+          <div class="sub-type-name">Event Hosting</div>
+          <div class="sub-type-pts">Up to 60 pts</div>
+        </div>
+        <div class="sub-type-card" onclick="selectSubType(this,'Committee Work')">
+          <div class="sub-type-icon">📋</div>
+          <div class="sub-type-name">Committee Work</div>
+          <div class="sub-type-pts">Up to 35 pts</div>
+        </div>
+        <div class="sub-type-card" onclick="selectSubType(this,'Mentorship')">
+          <div class="sub-type-icon">🎓</div>
+          <div class="sub-type-name">Mentorship</div>
+          <div class="sub-type-pts">Up to 45 pts</div>
+        </div>
+        <div class="sub-type-card" onclick="selectSubType(this,'Other')">
+          <div class="sub-type-icon">✨</div>
+          <div class="sub-type-name">Other</div>
+          <div class="sub-type-pts">Up to 25 pts</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="form-group">
+        <label>Your Full Name</label>
+        <input type="text" id="subName" placeholder="e.g. Jordan Lee" list="memberNames">
+        <datalist id="memberNames"></datalist>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Activity Title</label>
+          <input type="text" id="subTitle" placeholder="Brief title">
+        </div>
+        <div class="form-group">
+          <label>Date of Activity</label>
+          <input type="date" id="subDate">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="subDesc" rows="4" placeholder="Describe what you did, who was involved, and the impact..."></textarea>
+      </div>
+
+      <div class="form-group" style="max-width:160px;">
+        <label>Hours Spent <span style="color:var(--text-light);font-size:0.65rem;">(optional)</span></label>
+        <input type="number" id="subHours" placeholder="e.g. 3" min="0">
+      </div>
+
+      <div class="info-note">
+        🏛️ Submissions are reviewed by an admin within <strong>48–72 hours</strong>. Points will appear on the leaderboard once approved.
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="clearForm()">Clear</button>
+        <button class="btn-primary" id="submitBtn" onclick="submitActivity()">Submit for Review →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN ===== -->
+<div id="view-admin" class="view">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
+      <div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;color:var(--gold-light);">Admin Panel</h2>
+        <p style="font-size:0.82rem;color:var(--text-light);margin-top:0.2rem;">
+          Live sync with &nbsp;<span class="sheets-badge">📊 Google Sheets</span>
+        </p>
+      </div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <button class="tool-btn" onclick="loadFromSheets(true)">↻ Refresh Data</button>
+        <button class="btn-secondary" onclick="logoutAdmin()" style="font-size:0.78rem;">⏻ Logout</button>
+      </div>
+    </div>
+
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="showAdminSection('attendance')">Log Attendance</button>
+      <button class="admin-tab"        onclick="showAdminSection('review')">Review Queue <span id="pendingBadge"></span></button>
+      <button class="admin-tab"        onclick="showAdminSection('members')">All Members</button>
+      <button class="admin-tab"        onclick="showAdminSection('history')">History</button>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div id="admin-attendance" class="admin-section active">
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title">⬡ Quick Award Points</div>
+        <div class="quick-award-grid">
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Member Name</label>
+            <input type="text" id="quickName" placeholder="Full name" list="memberSuggest">
+            <datalist id="memberSuggest"></datalist>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Points</label>
+            <input type="number" id="quickPts" value="25" min="1">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Reason</label>
+            <input type="text" id="quickReason" placeholder="e.g. Monthly Meeting">
+          </div>
+          <div>
+            <label style="display:block;font-size:0.68rem;color:transparent;margin-bottom:0.45rem;">–</label>
+            <button class="btn-primary" style="white-space:nowrap;padding:0.75rem 1.25rem;" onclick="awardPoints()">Award →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-toolbar">
+          <div class="card-title" style="margin-bottom:0;">⬡ Bulk Attendance — +25 pts each</div>
+          <button class="tool-btn" onclick="exportCSV('attendance')">⬇ Export CSV</button>
+        </div>
+        <div class="attend-list" id="attendList"></div>
+        <div id="attendEmpty" class="empty-state" style="display:none;padding:1.5rem;">
+          <div class="icon">👥</div><p>Loading members from Google Sheets…</p>
+        </div>
+        <div class="btn-row" style="margin-top:1.25rem;">
+          <button class="btn-primary" onclick="saveBulkAttendance()">Save Attendance →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEW -->
+    <div id="admin-review" class="admin-section">
+      <div id="reviewQueue"></div>
+      <div id="reviewEmpty" class="empty-state" style="display:none;">
+        <div class="icon">✅</div><p>All clear — no pending submissions!</p>
+      </div>
+    </div>
+
+    <!-- MEMBERS -->
+    <div id="admin-members" class="admin-section">
+      <div class="section-toolbar">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold-light);">⬡ All Members</div>
+        <div class="toolbar-btns">
+          <a class="tool-btn" href="https://docs.google.com/spreadsheets/d/11MSMfqEUWT3npXd8ic2TaVqiamUFCgBm6t-PHcGZHfs/edit" target="_blank">📊 Open in Google Sheets</a>
+          <button class="tool-btn" onclick="exportCSV('members')">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>Rank</th><th>Member</th><th>Points</th><th>Attendances</th><th>Submissions</th></tr></thead>
+          <tbody id="membersTableBody"></tbody>
+        </table>
+        <div id="membersEmpty" class="empty-state" style="display:none;padding:1.5rem;">
+          <div class="icon">👥</div><p>No members yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="admin-history" class="admin-section">
+      <div class="section-toolbar">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold-light);">⬡ Submission History</div>
+        <button class="tool-btn" onclick="exportCSV('history')">⬇ Export CSV</button>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>Member</th><th>Type</th><th>Title</th><th>Date</th><th>Status</th><th>Points</th></tr></thead>
+          <tbody id="historyTableBody"></tbody>
+        </table>
+        <div id="historyEmpty" class="empty-state" style="display:none;padding:1.5rem;">
+          <div class="icon">📋</div><p>No submissions yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EMAIL MODAL -->
+<div id="emailModal">
+  <div class="modal-box" style="max-width:440px;text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:1rem;">✅</div>
+    <h3 style="margin-bottom:0.4rem;">Submission Received!</h3>
+    <p style="margin-bottom:1.5rem;">Your activity has been logged and is pending admin review.</p>
+
+    <div style="background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:4px;padding:1.25rem;margin-bottom:1.25rem;text-align:left;">
+      <p style="font-size:0.8rem;color:var(--gold);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.5rem;">📎 Have supporting files?</p>
+      <p style="font-size:0.82rem;color:var(--cream-dark);line-height:1.55;">Attach photos, certificates, or documents to support your submission:</p>
+    </div>
+
+    <a id="emailModalOutlook" href="#" target="_blank"
+      style="display:flex;align-items:center;justify-content:center;gap:0.6rem;width:100%;padding:0.85rem;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border-radius:3px;color:var(--deep);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;margin-bottom:0.6rem;box-shadow:0 4px 15px rgba(201,168,76,0.3);"
+      onclick="setTimeout(function(){closeEmailModal();},1200);">
+      📧 Open Outlook
+    </a>
+
+    <a id="emailModalGmail" href="#" target="_blank"
+      style="display:flex;align-items:center;justify-content:center;gap:0.6rem;width:100%;padding:0.8rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:3px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;text-decoration:none;margin-bottom:1rem;"
+      onclick="setTimeout(function(){closeEmailModal();},1200);">
+      🌐 Open Gmail in Browser
+    </a>
+
+    <p style="font-size:0.72rem;color:var(--text-light);margin-bottom:1rem;">
+      Both send to <strong style="color:var(--gold);">kennesawnaba@gmail.com</strong> with your details pre-filled.
+    </p>
+
+    <button onclick="closeEmailModal()"
+      style="width:100%;padding:0.7rem;background:transparent;border:1px solid rgba(160,184,168,0.2);border-radius:3px;color:var(--text-light);font-family:'DM Sans',sans-serif;font-size:0.8rem;cursor:pointer;">
+      No files — go to Leaderboard
+    </button>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div id="adminLoginView">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeAdminLogin()">✕</button>
+    <h3>Admin Access</h3>
+    <p>Enter your admin password to manage the portal</p>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="adminPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')verifyAdmin()">
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="verifyAdmin()">Sign In →</button>
+    <p style="font-size:0.72rem;color:var(--text-light);margin-top:0.75rem;text-align:center;">Demo password: <strong style="color:var(--gold);">admin</strong></p>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// CONFIGURATION — change password here
+// ─────────────────────────────────────────
+const ADMIN_PASS  = 'admin';
+const SHEET_ID    = '11MSMfqEUWT3npXd8ic2TaVqiamUFCgBm6t-PHcGZHfs';
+const SHEET_NAME  = 'Sheet1';
+const ADMIN_EMAIL = 'kennesawnaba@gmail.com';
+
+// Google Apps Script Web App URL — paste yours here after setup
+// See the instructions panel below for how to get this URL
+let APPS_SCRIPT_URL = '';
+
+// ─────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────
+let adminLoggedIn  = false;
+let selectedSubType = null;
+let lbFilter       = 'all';
+const markedToday  = new Set();
+let members        = [];   // loaded from Sheets
+let submissions    = [];   // local session
+let activityLog    = [];
+let nextSubId      = 1;
+
+// ─────────────────────────────────────────
+// GOOGLE SHEETS — READ
+// ─────────────────────────────────────────
+async function loadFromSheets(manual = false) {
+  setSyncStatus('syncing', 'Syncing with Google Sheets…');
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+    const res  = await fetch(url);
+    const text = await res.text();
+    // Google wraps the JSON in /*O_o*/\ngoogle.visualization.Query.setResponse(...)
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);/)[1]);
+    const rows = json.table.rows;
+
+    members = rows
+      .filter(r => r.c[0] && r.c[0].v)
+      .map((r, i) => ({
+        id:          i + 1,
+        name:        String(r.c[0].v).trim(),
+        points:      r.c[1] ? (Number(r.c[1].v) || 0) : 0,
+        attendances: r.c[2] ? (Number(r.c[2].v) || 0) : 0,
+        rowIndex:    i + 2   // 1-indexed, row 1 = header
+      }));
+
+    setSyncStatus('synced', `Synced — ${members.length} members loaded`);
+    document.getElementById('lastSync').textContent = 'Last sync: ' + new Date().toLocaleTimeString();
+
+    renderLeaderboard();
+    refreshDataLists();
+    if (adminLoggedIn) renderAdminAttendance();
+
+    // Hide loading skeleton
+    document.getElementById('lbLoading').style.display = 'none';
+
+    if (manual) showToast('✅ Data refreshed from Google Sheets!');
+  } catch (e) {
+    setSyncStatus('error', 'Could not reach Google Sheets — showing cached data');
+    document.getElementById('lbLoading').style.display = 'none';
+    console.error('Sheets error:', e);
+  }
+}
+
+// ─────────────────────────────────────────
+// GOOGLE SHEETS — WRITE (via Apps Script)
+// ─────────────────────────────────────────
+async function writeToSheets(action, payload) {
+  if (!APPS_SCRIPT_URL) {
+    // No Apps Script yet — update locally only and remind admin
+    showToast('⚠️ Apps Script not connected — points updated locally only. See Admin → Setup to connect Google Sheets writes.');
+    return false;
+  }
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...payload })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      setTimeout(() => loadFromSheets(), 1500);
+      return true;
+    }
+    throw new Error(data.message || 'Unknown error');
+  } catch(e) {
+    showToast('⚠️ Could not write to Sheets: ' + e.message);
+    return false;
+  }
+}
+
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncStatus');
+  dot.className = 'sync-dot ' + state;
+  txt.textContent = msg;
+}
+
+// ─────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + id + "'")) b.classList.add('active');
+  });
+  if (id === 'leaderboard') renderLeaderboard();
+}
+
+// ─────────────────────────────────────────
+// LEADERBOARD
+// ─────────────────────────────────────────
+function setFilter(f, btn) {
+  lbFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const empty   = document.getElementById('lbEmpty');
+  const podiumEl = document.getElementById('podium');
+  const restCard = document.getElementById('lbRestCard');
+
+  if (!members.length) { empty.style.display = ''; podiumEl.style.display = 'none'; restCard.style.display = 'none'; return; }
+
+  empty.style.display = 'none';
+  const sorted = [...members].sort((a, b) => lbFilter === 'attend' ? b.attendances - a.attendances : b.points - a.points);
+  const top3 = sorted.slice(0, 3);
+  const rest  = sorted.slice(3);
+
+  const slots = [
+    { m: top3[1], cls: 'second', crown: '🥈' },
+    { m: top3[0], cls: 'first',  crown: '🥇' },
+    { m: top3[2], cls: 'third',  crown: '🥉' },
+  ].filter(s => s.m);
+
+  podiumEl.style.display = slots.length ? '' : 'none';
+  podiumEl.innerHTML = slots.map(s => `
+    <div class="podium-slot ${s.cls}">
+      <div class="podium-crown ${s.cls}">${s.crown}</div>
+      <div class="podium-avatar">${initials(s.m.name)}</div>
+      <div class="podium-name">${s.m.name}</div>
+      <div class="podium-pts">${lbFilter === 'attend' ? s.m.attendances : s.m.points}</div>
+      <div class="podium-pts-label">${lbFilter === 'attend' ? 'sessions' : 'points'}</div>
+    </div>`).join('');
+
+  if (rest.length) {
+    restCard.style.display = '';
+    document.getElementById('lbRest').innerHTML = rest.map((m, i) => `
+      <div class="lb-row">
+        <div class="lb-rank">#${i + 4}</div>
+        <div class="lb-avatar-sm">${initials(m.name)}</div>
+        <div class="lb-name-col">${m.name}</div>
+        <div class="lb-pts-col">${lbFilter === 'attend' ? m.attendances + ' sessions' : m.points + ' pts'}</div>
+        <div class="lb-attend-col">${lbFilter === 'attend' ? m.points + ' pts' : m.attendances + ' sessions'}</div>
+      </div>`).join('');
+  } else {
+    restCard.style.display = 'none';
+  }
+}
+
+// ─────────────────────────────────────────
+// SUBMIT
+// ─────────────────────────────────────────
+function selectSubType(el, type) {
+  document.querySelectorAll('.sub-type-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSubType = type;
+}
+
+function clearForm() {
+  selectedSubType = null;
+  document.querySelectorAll('.sub-type-card').forEach(c => c.classList.remove('selected'));
+  ['subName','subTitle','subDate','subDesc','subHours'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('subDate').valueAsDate = new Date();
+}
+
+function submitActivity() {
+  if (!selectedSubType) { showToast('⚠️ Please select a submission type first.'); return; }
+  const name  = document.getElementById('subName').value.trim();
+  const title = document.getElementById('subTitle').value.trim();
+  const date  = document.getElementById('subDate').value;
+  const desc  = document.getElementById('subDesc').value.trim();
+  const hours = document.getElementById('subHours').value || null;
+  if (!name || !title || !date || !desc) { showToast('⚠️ Please fill in all required fields.'); return; }
+
+  const sub = { id: nextSubId++, memberName: name, type: selectedSubType, title, desc, date, hours, status: 'pending', points: null };
+  submissions.push(sub);
+  clearForm();
+  updatePendingBadge();
+  showEmailModal(sub);
+}
+
+// ─────────────────────────────────────────
+// EMAIL MODAL
+// ─────────────────────────────────────────
+function showEmailModal(sub) {
+  const dateFormatted = sub.date ? new Date(sub.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : sub.date;
+  const rawSubject = '[NABA KSU] Activity Submission - ' + sub.type + ' - ' + sub.memberName;
+  const rawBody =
+    'Hi NABA KSU Team,\n\nI am submitting supporting files for my recent activity submission. Details are below:\n\n' +
+    'Member Name:   ' + sub.memberName + '\nActivity Type: ' + sub.type + '\nTitle:         ' + sub.title +
+    '\nDate:          ' + dateFormatted + (sub.hours ? '\nHours Spent:   ' + sub.hours : '') +
+    '\n\nDescription:\n' + sub.desc + '\n\nPlease find my supporting file(s) attached.\n\nThank you,\n' + sub.memberName;
+
+  const outlookLink = 'https://outlook.live.com/mail/0/deeplink/compose?to=' + ADMIN_EMAIL + '&subject=' + encodeURIComponent(rawSubject) + '&body=' + encodeURIComponent(rawBody);
+  const gmailLink   = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + ADMIN_EMAIL + '&su=' + encodeURIComponent(rawSubject) + '&body=' + encodeURIComponent(rawBody);
+
+  document.getElementById('emailModalOutlook').href = outlookLink;
+  document.getElementById('emailModalGmail').href   = gmailLink;
+  document.getElementById('emailModal').style.display = 'flex';
+}
+
+function closeEmailModal() {
+  document.getElementById('emailModal').style.display = 'none';
+  showView('leaderboard');
+}
+
+// ─────────────────────────────────────────
+// ADMIN AUTH
+// ─────────────────────────────────────────
+function openAdminLogin() {
+  if (adminLoggedIn) { showView('admin'); return; }
+  document.getElementById('adminLoginView').classList.add('active');
+  setTimeout(() => document.getElementById('adminPass').focus(), 100);
+}
+
+function closeAdminLogin() {
+  document.getElementById('adminLoginView').classList.remove('active');
+  document.getElementById('adminPass').value = '';
+}
+
+function verifyAdmin() {
+  if (document.getElementById('adminPass').value === ADMIN_PASS) {
+    adminLoggedIn = true;
+    closeAdminLogin();
+    showView('admin');
+    renderAdminAttendance();
+    renderReview();
+    updatePendingBadge();
+    if (!APPS_SCRIPT_URL) showAppsScriptBanner();
+  } else {
+    showToast('❌ Incorrect password.');
+    document.getElementById('adminPass').value = '';
+  }
+}
+
+function logoutAdmin() { adminLoggedIn = false; showView('leaderboard'); }
+
+// ─────────────────────────────────────────
+// APPS SCRIPT SETUP BANNER
+// ─────────────────────────────────────────
+function showAppsScriptBanner() {
+  if (document.getElementById('scriptBanner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'scriptBanner';
+  banner.style.cssText = 'background:rgba(201,168,76,0.12);border:1px solid var(--gold);border-radius:4px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;';
+  banner.innerHTML = `
+    <div style="font-size:0.85rem;font-weight:600;color:var(--gold);margin-bottom:0.5rem;">⚡ One-time setup needed to enable Google Sheets writes</div>
+    <p style="font-size:0.8rem;color:var(--cream-dark);line-height:1.6;margin-bottom:1rem;">
+      The leaderboard reads live from Google Sheets automatically. To also <strong>write</strong> points back to the sheet from this admin panel, you need to set up a free Google Apps Script (takes ~3 minutes, one time only).
+    </p>
+    <details style="font-size:0.8rem;color:var(--text-light);line-height:1.8;">
+      <summary style="cursor:pointer;color:var(--gold-light);font-weight:600;margin-bottom:0.5rem;">📋 Click to see setup instructions</summary>
+      <ol style="padding-left:1.25rem;margin-top:0.5rem;">
+        <li>Open your <a href="https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit" target="_blank" style="color:var(--gold);">Google Sheet</a></li>
+        <li>Click <strong>Extensions → Apps Script</strong></li>
+        <li>Delete any existing code and paste in the Apps Script code below</li>
+        <li>Click <strong>Deploy → New deployment → Web app</strong></li>
+        <li>Set <em>Execute as: Me</em> and <em>Who has access: Anyone</em></li>
+        <li>Click <strong>Deploy</strong> and copy the Web App URL</li>
+        <li>Open this HTML file in a text editor, find <code style="color:var(--gold);">let APPS_SCRIPT_URL = '';</code> and paste your URL between the quotes</li>
+        <li>Redeploy to Netlify</li>
+      </ol>
+      <div style="margin-top:1rem;background:rgba(0,0,0,0.3);border-radius:3px;padding:1rem;font-family:monospace;font-size:0.72rem;color:#a0b8a8;white-space:pre-wrap;max-height:200px;overflow-y:auto;">${getAppsScriptCode()}</div>
+      <button onclick="copyAppsScript()" style="margin-top:0.75rem;padding:0.4rem 0.9rem;background:rgba(201,168,76,0.15);border:1px solid var(--border);border-radius:3px;color:var(--gold);font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;" id="copyScriptBtn">⧉ Copy Apps Script Code</button>
+    </details>
+  `;
+  const container = document.querySelector('#view-admin .container');
+  const tabs = container.querySelector('.admin-tabs');
+  container.insertBefore(banner, tabs);
+}
+
+function getAppsScriptCode() {
+  return `const SHEET_ID = '${SHEET_ID}';
+
+function doPost(e) {
+  const data = JSON.parse(e.postData.contents);
+  const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Sheet1');
+  const rows = sheet.getDataRange().getValues();
+
+  if (data.action === 'updatePoints') {
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][0] && rows[i][0].toString().trim().toLowerCase() === data.name.trim().toLowerCase()) {
+        const pts = Number(rows[i][1] || 0) + Number(data.points);
+        const att = Number(rows[i][2] || 0) + (data.attendance ? 1 : 0);
+        sheet.getRange(i + 1, 2).setValue(pts);
+        if (data.attendance) sheet.getRange(i + 1, 3).setValue(att);
+        return ContentService.createTextOutput(JSON.stringify({ status: 'ok' })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Member not found' })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (data.action === 'bulkAttendance') {
+    data.names.forEach(name => {
+      for (let i = 1; i < rows.length; i++) {
+        if (rows[i][0] && rows[i][0].toString().trim().toLowerCase() === name.trim().toLowerCase()) {
+          sheet.getRange(i + 1, 2).setValue(Number(rows[i][1] || 0) + 25);
+          sheet.getRange(i + 1, 3).setValue(Number(rows[i][2] || 0) + 1);
+          break;
+        }
+      }
+    });
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ok' })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Unknown action' })).setMimeType(ContentService.MimeType.JSON);
+}`;
+}
+
+function copyAppsScript() {
+  navigator.clipboard.writeText(getAppsScriptCode()).then(() => {
+    document.getElementById('copyScriptBtn').textContent = '✓ Copied!';
+    setTimeout(() => { document.getElementById('copyScriptBtn').textContent = '⧉ Copy Apps Script Code'; }, 2500);
+  });
+}
+
+// ─────────────────────────────────────────
+// ADMIN — ATTENDANCE
+// ─────────────────────────────────────────
+function showAdminSection(id) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('admin-' + id).classList.add('active');
+  document.querySelectorAll('.admin-tab').forEach(t => {
+    if (t.getAttribute('onclick') && t.getAttribute('onclick').includes("'" + id + "'")) t.classList.add('active');
+  });
+  if (id === 'review')     renderReview();
+  if (id === 'attendance') renderAdminAttendance();
+  if (id === 'members')    renderMembersTable();
+  if (id === 'history')    renderHistory();
+}
+
+function renderAdminAttendance() {
+  markedToday.clear();
+  const list  = document.getElementById('attendList');
+  const empty = document.getElementById('attendEmpty');
+  if (!members.length) { list.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  list.innerHTML = members.map(m => `
+    <div class="attend-row">
+      <div class="attend-avatar">${initials(m.name)}</div>
+      <div class="attend-name">${m.name}</div>
+      <div class="attend-pts">${m.points} pts</div>
+      <button class="check-btn" id="att-${m.id}" onclick="toggleMark(${m.id})">Mark ✓</button>
+    </div>`).join('');
+}
+
+function toggleMark(id) {
+  const btn = document.getElementById('att-' + id);
+  if (markedToday.has(id)) { markedToday.delete(id); btn.classList.remove('checked'); btn.textContent = 'Mark ✓'; }
+  else                     { markedToday.add(id);    btn.classList.add('checked');    btn.textContent = '✓ Present'; }
+}
+
+async function saveBulkAttendance() {
+  if (!markedToday.size) { showToast('⚠️ No members marked present.'); return; }
+  const names = [...markedToday].map(id => members.find(m => m.id === id)?.name).filter(Boolean);
+
+  // Update locally immediately
+  markedToday.forEach(id => {
+    const m = members.find(m => m.id === id);
+    if (m) { m.points += 25; m.attendances++; activityLog.unshift({ memberName: m.name, desc: 'Attendance logged', pts: 25, date: today() }); }
+  });
+
+  showToast('✅ Saving attendance for ' + names.length + ' member(s)…');
+  markedToday.clear();
+  renderAdminAttendance();
+  renderLeaderboard();
+
+  // Write to Sheets
+  await writeToSheets('bulkAttendance', { names });
+}
+
+async function awardPoints() {
+  const name   = document.getElementById('quickName').value.trim();
+  const pts    = parseInt(document.getElementById('quickPts').value);
+  const reason = document.getElementById('quickReason').value.trim() || 'Points awarded';
+  if (!name) { showToast('⚠️ Enter a member name.'); return; }
+  if (!pts || pts < 1) { showToast('⚠️ Enter a valid point amount.'); return; }
+
+  let m = members.find(m => m.name.toLowerCase() === name.toLowerCase());
+  if (!m) { showToast('⚠️ Member not found in roster. Add them to the Google Sheet first.'); return; }
+
+  m.points += pts;
+  activityLog.unshift({ memberName: m.name, desc: reason, pts, date: today() });
+  renderLeaderboard();
+  showToast('✅ ' + pts + ' pts awarded to ' + m.name + '! Saving to Sheets…');
+
+  document.getElementById('quickName').value  = '';
+  document.getElementById('quickPts').value   = 25;
+  document.getElementById('quickReason').value = '';
+
+  await writeToSheets('updatePoints', { name: m.name, points: pts, attendance: false });
+}
+
+// ─────────────────────────────────────────
+// REVIEW QUEUE
+// ─────────────────────────────────────────
+function renderReview() {
+  const pending = submissions.filter(s => s.status === 'pending');
+  const container = document.getElementById('reviewQueue');
+  const empty     = document.getElementById('reviewEmpty');
+  if (!pending.length) { container.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  container.innerHTML = pending.map(s => `
+    <div class="review-card" id="rc-${s.id}">
+      <div class="review-header">
+        <div><div class="review-member">${s.memberName}</div><div class="review-meta">${s.type}${s.hours ? ' · ' + s.hours + ' hrs' : ''}</div></div>
+        <div class="review-date-col">${fmtDate(s.date)}</div>
+      </div>
+      <div class="review-title">${s.title}</div>
+      <div class="review-desc">${s.desc}</div>
+      <div class="review-actions">
+        <span class="pts-label">Award pts:</span>
+        <input type="number" class="pts-input" id="pts-${s.id}" value="30" min="1" max="200">
+        <button class="btn-approve" onclick="reviewSub(${s.id},'approved')">✓ Approve</button>
+        <button class="btn-reject"  onclick="reviewSub(${s.id},'rejected')">✗ Reject</button>
+      </div>
+    </div>`).join('');
+}
+
+async function reviewSub(id, action) {
+  const sub = submissions.find(s => s.id === id);
+  if (!sub) return;
+  sub.status = action;
+
+  if (action === 'approved') {
+    const pts = parseInt(document.getElementById('pts-' + id).value) || 30;
+    sub.points = pts;
+    let m = members.find(m => m.name.toLowerCase() === sub.memberName.toLowerCase());
+    if (m) {
+      m.points += pts;
+      activityLog.unshift({ memberName: sub.memberName, desc: sub.type + ' approved', pts, date: today() });
+      renderLeaderboard();
+      showToast('✅ Approved — ' + pts + ' pts awarded to ' + sub.memberName + '. Saving to Sheets…');
+      await writeToSheets('updatePoints', { name: sub.memberName, points: pts, attendance: false });
+    } else {
+      showToast('✅ Approved — note: member not found in Sheets roster.');
+    }
+  } else {
+    showToast('Submission from ' + sub.memberName + ' rejected.');
+  }
+
+  document.getElementById('rc-' + id)?.remove();
+  updatePendingBadge();
+  if (!submissions.filter(s => s.status === 'pending').length) document.getElementById('reviewEmpty').style.display = '';
+}
+
+// ─────────────────────────────────────────
+// MEMBERS + HISTORY TABLES
+// ─────────────────────────────────────────
+function renderMembersTable() {
+  const sorted = [...members].sort((a, b) => b.points - a.points);
+  const tbody  = document.getElementById('membersTableBody');
+  const empty  = document.getElementById('membersEmpty');
+  if (!sorted.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = sorted.map((m, i) => `
+    <tr>
+      <td style="color:var(--text-light);font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;">#${i+1}</td>
+      <td><div style="display:flex;align-items:center;gap:0.6rem;"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;color:var(--deep);flex-shrink:0;">${initials(m.name)}</div>${m.name}</div></td>
+      <td style="color:var(--gold);font-weight:600;">${m.points}</td>
+      <td>${m.attendances}</td>
+      <td>${submissions.filter(s => s.memberName.toLowerCase() === m.name.toLowerCase()).length}</td>
+    </tr>`).join('');
+}
+
+function renderHistory() {
+  const all   = [...submissions].reverse();
+  const tbody = document.getElementById('historyTableBody');
+  const empty = document.getElementById('historyEmpty');
+  if (!all.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = all.map(s => `
+    <tr>
+      <td>${s.memberName}</td>
+      <td style="color:var(--text-light);font-size:0.78rem;">${s.type}</td>
+      <td>${s.title}</td>
+      <td style="color:var(--text-light);font-size:0.78rem;">${fmtDate(s.date)}</td>
+      <td><span class="status-badge ${s.status}">${cap(s.status)}</span></td>
+      <td style="color:var(--gold);font-weight:600;">${s.points !== null ? '+' + s.points : '—'}</td>
+    </tr>`).join('');
+}
+
+// ─────────────────────────────────────────
+// CSV EXPORT
+// ─────────────────────────────────────────
+function exportCSV(type) {
+  let rows = [], filename = '';
+  if (type === 'members') {
+    filename = 'members-points.csv';
+    rows = [['Rank','Name','Points','Attendances','Submissions']];
+    [...members].sort((a,b)=>b.points-a.points).forEach((m,i) => rows.push([i+1, m.name, m.points, m.attendances, submissions.filter(s=>s.memberName.toLowerCase()===m.name.toLowerCase()).length]));
+  } else if (type === 'history') {
+    filename = 'submission-history.csv';
+    rows = [['Member','Type','Title','Date','Hours','Status','Points']];
+    submissions.forEach(s => rows.push([s.memberName, s.type, s.title, s.date, s.hours||'', s.status, s.points!==null?s.points:'']));
+    if (!submissions.length) { showToast('⚠️ No submissions yet.'); return; }
+  } else if (type === 'attendance') {
+    filename = 'attendance-log.csv';
+    rows = [['Member','Reason','Points','Date']];
+    activityLog.forEach(l => rows.push([l.memberName, l.desc, l.pts, l.date]));
+    if (!activityLog.length) { showToast('⚠️ No attendance data yet.'); return; }
+  }
+  const csv  = rows.map(r => r.map(c => { const s = String(c); return s.includes(',') || s.includes('"') ? '"' + s.replace(/"/g,'""') + '"' : s; }).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('⬇ ' + filename + ' downloaded!');
+}
+
+// ─────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────
+function updatePendingBadge() {
+  const count = submissions.filter(s => s.status === 'pending').length;
+  document.getElementById('pendingBadge').innerHTML = count > 0 ? `<span class="pending-badge">${count}</span>` : '';
+}
+
+function refreshDataLists() {
+  ['memberNames','memberSuggest'].forEach(id => {
+    const dl = document.getElementById(id);
+    if (dl) dl.innerHTML = members.map(m => `<option value="${m.name}">`).join('');
+  });
+}
+
+function initials(name) { return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(); }
+function fmtDate(d)     { if (!d) return '—'; return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+function today()        { return new Date().toISOString().split('T')[0]; }
+function cap(s)         { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function showToast(msg) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+document.getElementById('subDate').valueAsDate = new Date();
+loadFromSheets();
+// Auto-refresh every 60 seconds
+setInterval(() => loadFromSheets(), 60000);
+</script>
+</body>
+</html>
