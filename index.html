@@ -648,11 +648,11 @@ nav{display:flex;gap:4px;}
         <div class="setup-fields">
           <div class="setup-field">
             <label>Google Sheet CSV URL</label>
-            <input type="url" id="sheet-url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" />
+            <input type="text" id="sheet-url" name="naba_sheet_x7q" class="form-input" autocomplete="off" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" />
           </div>
           <div class="setup-field">
             <label>Apps Script Web App URL</label>
-            <input type="url" id="script-url" placeholder="https://script.google.com/macros/s/.../exec" />
+            <input type="text" id="script-url" name="naba_script_x7q" class="form-input" autocomplete="off" placeholder="https://script.google.com/macros/s/.../exec" />
           </div>
           <button class="btn btn-gold" onclick="saveConfig()">Save & Connect</button>
         </div>
@@ -1266,10 +1266,12 @@ function saveConfig() {
 }
 
 // Pre-fill config fields — admin panel only
-document.getElementById('sheet-url').value = config.sheetUrl || '';
-if (config.scriptUrl) document.getElementById('script-url').value = config.scriptUrl;
-// Always clear the leaderboard search box
-document.getElementById('lb-search').value = '';
+// Use setTimeout to run AFTER browser autofill fires
+setTimeout(() => {
+  document.getElementById('sheet-url').value = config.sheetUrl || '';
+  document.getElementById('script-url').value = config.scriptUrl || '';
+  document.getElementById('lb-search').value = '';
+}, 100);
 
 // ===== APPS SCRIPT MODAL =====
 function showScriptModal() {
