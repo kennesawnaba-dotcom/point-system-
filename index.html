@@ -760,8 +760,27 @@ const APPS_SCRIPT_CODE = `function doPost(e) {
 }
 
 function doGet(e) {
-  // Returns member data as JSON
+  var action = e && e.parameter && e.parameter.action ? e.parameter.action : 'getMembers';
   var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  if (action === 'getSubmissions') {
+    var sub = ss.getSheetByName('Submissions');
+    if (!sub) return ContentService.createTextOutput(JSON.stringify([]))
+      .setMimeType(ContentService.MimeType.JSON);
+    var rows = sub.getDataRange().getValues();
+    var result = [];
+    for (var i = 1; i < rows.length; i++) {
+      if (rows[i][0]) result.push({
+        date: rows[i][0], name: rows[i][1], type: rows[i][2],
+        title: rows[i][3], hours: rows[i][4], description: rows[i][5],
+        status: rows[i][6]||'Pending', points: rows[i][7]||0, id: rows[i][8]||('s'+i)
+      });
+    }
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // Default: return members
   var sheet = ss.getSheetByName('Members') || ss.getSheets()[0];
   var rows = sheet.getDataRange().getValues();
   var members = [];
@@ -788,11 +807,10 @@ let sortCol = 'points', sortDir = -1;
 
 // Load config
 try { config = JSON.parse(localStorage.getItem('naba_config') || '{}'); } catch(e){}
-// Hardcoded sheet URL — always use this as default
-if (!config.sheetUrl) {
-  config.sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT8e8rmEarJ3JTEllKxZ6W1htnA9yi1Xh-eDRa0XkERwlfhz6pqj4gkKieNltu5-_q8YGP1oH3YtAPz/pub?gid=0&single=true&output=csv';
-  localStorage.setItem('naba_config', JSON.stringify(config));
-}
+// Hardcoded URLs — always override to ensure they're always set
+config.sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT8e8rmEarJ3JTEllKxZ6W1htnA9yi1Xh-eDRa0XkERwlfhz6pqj4gkKieNltu5-_q8YGP1oH3YtAPz/pub?gid=0&single=true&output=csv';
+config.scriptUrl = 'https://script.google.com/macros/s/AKfycbz6EQgnc5K39WKCwumvvwyi4UY3PoVmQufMqSatOSrI6yE8Jiw2dNhWEGX_L6oX-niP/exec';
+localStorage.setItem('naba_config', JSON.stringify(config));
 
 // Default demo roster
 const DEFAULT_ROSTER = [
@@ -851,9 +869,24 @@ async function fetchSheet() {
     const text = await res.text();
     parseCSV(text);
     setSyncState('ok','Live · Last synced ' + new Date().toLocaleTimeString());
+    await fetchSubmissions();
     renderAll();
   } catch(e) {
     setSyncState('error','Connection error — retrying…');
+  }
+}
+
+async function fetchSubmissions() {
+  if (!config.scriptUrl) return;
+  try {
+    const res = await fetch(config.scriptUrl + '?action=getSubmissions&_=' + Date.now());
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      submissions = data;
+      history = [...data];
+    }
+  } catch(e) {
+    // keep local submissions if fetch fails
   }
 }
 
