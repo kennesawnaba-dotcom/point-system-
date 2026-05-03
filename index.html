@@ -461,7 +461,7 @@ nav{display:flex;gap:4px;}
       <button class="toggle-btn active" onclick="setFilter('points',this)">🏆 All Time</button>
       <button class="toggle-btn" onclick="setFilter('attendance',this)">📅 Attendance</button>
     </div>
-    <input type="text" class="search-box" id="lb-search" placeholder="Search members…" oninput="renderLeaderboard()"/>
+    <input type="text" class="search-box" id="lb-search" placeholder="Search members…" oninput="renderLeaderboard()" autocomplete="off" value=""/>
   </div>
 
   <div id="podium-area"></div>
@@ -655,7 +655,6 @@ nav{display:flex;gap:4px;}
             <input type="url" id="script-url" placeholder="https://script.google.com/macros/s/.../exec" />
           </div>
           <button class="btn btn-gold" onclick="saveConfig()">Save & Connect</button>
-          <button class="btn btn-outline" onclick="showScriptModal()">View Apps Script</button>
         </div>
       </div>
     </div>
@@ -1266,9 +1265,11 @@ function saveConfig() {
   startSync();
 }
 
-// Pre-fill config fields
+// Pre-fill config fields — admin panel only
 document.getElementById('sheet-url').value = config.sheetUrl || '';
 if (config.scriptUrl) document.getElementById('script-url').value = config.scriptUrl;
+// Always clear the leaderboard search box
+document.getElementById('lb-search').value = '';
 
 // ===== APPS SCRIPT MODAL =====
 function showScriptModal() {
