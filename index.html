@@ -456,23 +456,6 @@ nav{display:flex;gap:4px;}
   <h1 class="page-title">Leaderboard <span class="gold">Rankings</span></h1>
   <p class="page-subtitle">Live member standings · Auto-refreshes every 60 seconds</p>
 
-  <div id="setup-banner">
-    <h3>📊 Google Sheets Setup Required</h3>
-    <p>Paste your Google Sheets URL (must be published to web or use a public CSV export link). The sheet should have columns: <strong>Name, Points, Attendance, Submissions</strong>.</p>
-    <div class="setup-fields">
-      <div class="setup-field">
-        <label>Google Sheet CSV URL</label>
-        <input type="url" id="sheet-url" placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv" />
-      </div>
-      <div class="setup-field">
-        <label>Apps Script Web App URL</label>
-        <input type="url" id="script-url" placeholder="https://script.google.com/macros/s/.../exec" />
-      </div>
-      <button class="btn btn-gold" onclick="saveConfig()">Save & Connect</button>
-      <button class="btn btn-outline" onclick="showScriptModal()">View Apps Script</button>
-    </div>
-  </div>
-
   <div class="lb-controls">
     <div class="toggle-group">
       <button class="toggle-btn active" onclick="setFilter('points',this)">🏆 All Time</button>
@@ -577,6 +560,7 @@ nav{display:flex;gap:4px;}
       <button class="admin-tab" onclick="showAdminTab('review',this)">📥 Review Queue <span class="badge-count" id="pending-count">0</span></button>
       <button class="admin-tab" onclick="showAdminTab('members',this)">👥 All Members</button>
       <button class="admin-tab" onclick="showAdminTab('history',this)">📜 History</button>
+      <button class="admin-tab" onclick="showAdminTab('settings',this)">⚙️ Settings</button>
     </div>
 
     <!-- ATTENDANCE -->
@@ -653,6 +637,26 @@ nav{display:flex;gap:4px;}
           </tr></thead>
           <tbody id="history-tbody"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="admin-section" id="section-settings">
+      <h3 style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--white);">📊 Google Sheets Connection</h3>
+      <p style="font-size:13px;color:var(--grey);margin-bottom:20px;">Configure your Google Sheet CSV URL and Apps Script endpoint. Only admins can see this.</p>
+      <div id="setup-banner" style="background:var(--charcoal3);border:1px solid var(--border);border-radius:12px;padding:24px;">
+        <div class="setup-fields">
+          <div class="setup-field">
+            <label>Google Sheet CSV URL</label>
+            <input type="url" id="sheet-url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" />
+          </div>
+          <div class="setup-field">
+            <label>Apps Script Web App URL</label>
+            <input type="url" id="script-url" placeholder="https://script.google.com/macros/s/.../exec" />
+          </div>
+          <button class="btn btn-gold" onclick="saveConfig()">Save & Connect</button>
+          <button class="btn btn-outline" onclick="showScriptModal()">View Apps Script</button>
+        </div>
       </div>
     </div>
   </div>
